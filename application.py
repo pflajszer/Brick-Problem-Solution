@@ -24,7 +24,7 @@ def check_args():
 Usage: python app.py text_file.txt input_position")
 
 def check_extension():
-    """ Check if first argument ends with the right extension (*.txt) """
+    """ Check if first command line argument ends with the right extension (*.txt) """
     if sys.argv[1][-4:] != '.txt':
         raise TypeError("The text file has to have the right extension (*.txt)")
 
@@ -39,26 +39,26 @@ def check_input_position(wall):
 Place the input position closer to the middle of the wall.")
 
 def read_file(file):
-    """ Open given file and returns the content as a string """
+    """ Open given file and returns the content as a string. """
     with open(file) as f:
         wall = f.read()
     return wall
 
 def check_file_format(wall):
     """ Using regex check if the string in the text file has the right formatting. """
-    if re.match('^-*\n\| \d{3} \|', wall) is not None:
-        return True
+    if not re.match('^-*\n\| \d{3} \|', wall):
+        raise ValueError("The provided text file doesn't follow the 'wall' pattern.")
 
 def create_wall(file):
     """ Create an iterable list of lists out of the single string read from the file. """
     wall = read_file(file)  
-    if check_file_format(wall):                                 
-        wall = wall.split('\n')                                 # Split a wall into rows on newline char
-        for row in range(0, len(wall)):                         
-            wall[row] = re.split('[^\d{3}]', wall[row])         # Split wall into rows of 3 digits using regex
-            wall[row] = list(filter(None, wall[row]))           # Remove empty strings from each row
-        wall = [row for row in wall if row != []]               # Remove empty lists from rows
-        return wall
+    check_file_format(wall)
+    wall = wall.split('\n')                                 # Split a wall into rows on newline char
+    for row in range(0, len(wall)):                         
+        wall[row] = re.findall('\d{3}', wall[row])         # Split wall into rows of 3 digits using regex
+        wall[row] = list(filter(None, wall[row]))           # Remove empty strings from each row
+    wall = [row for row in wall if row != []]               # Remove empty lists from rows
+    return wall
 
 def divide_bricks(pyramid):
     """ Divide every bricks' strenght rating by 990 to prepare them for multiplication. """
@@ -114,8 +114,6 @@ def main():
     check_extension()
     file = sys.argv[1]
     input_pos = (int(sys.argv[2])) - 1
-    results = []
-    counter = 0
     wall = create_wall(file)
     check_input_position(wall)
     pyramid = create_pyramid(wall, input_pos)
